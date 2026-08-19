@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stillroom - Cozy Lofi Focus Player</title>
+  <meta name="description" content="A premium, aesthetic lofi music player and ambient sound mixer with built-in To-Do list to help you focus, study, and relax.">
+  <link rel="stylesheet" href="index.css">
+  <!-- PeerJS P2P Signaling Script -->
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+  <!-- Dynamic Background Art Container -->
+  <div class="background-container" id="bg-container">
+    <video id="bg-video" autoplay loop muted playsinline class="bg-video" src="https://raw.githubusercontent.com/avinash201199/stopwatch/master/lofi2.mp4" style="display: block; opacity: 1;"></video>
+  </div>
+  <div class="background-overlay"></div>
+
+  <!-- Falling Rain Canvas Overlay -->
+  <canvas id="rain-canvas"></canvas>
+
+  <!-- Floating Reactions Container -->
+  <div class="reactions-container" id="reactions-container"></div>
+
+  <!-- Floating Restore Control Button (Shown in Zen Mode) -->
+  <button class="zen-toggle-floating" id="zen-toggle-floating" title="Show Controls">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/>
+    </svg>
+    <span>Show Controls</span>
+  </button>
+
+  <div class="app-container">
+    <!-- Header / Top Bar -->
+    <header class="app-header glass-panel" id="app-header">
+      <div class="logo-section">
+        <h1>Stillroom <span>focus</span></h1>
+      </div>
+      
+      <div class="header-controls">
+        <button class="zen-btn" id="zen-btn" title="Toggle Zen Mode (Hide UI)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Section Grid -->
+    <main class="app-main">
+      
+      <!-- Left Column: Co-Study & To-Do Sidebar -->
+      <div class="left-sidebar" id="left-sidebar">
+        
+        <!-- Co-Study Panel -->
+        <section class="co-study-panel glass-panel" id="co-study-panel">
+          <div class="panel-header">
+            <h2>Co-Study Space</h2>
+            <div class="user-nickname-wrapper">
+              <input type="text" id="nickname-input" class="nickname-input" placeholder="Your Name" value="" title="Your nickname">
+            </div>
+          </div>
+
+          <div class="peer-id-row">
+            <span class="invite-label">My ID:</span>
+            <span class="peer-id-text" id="peer-id-text">Connecting...</span>
+            <button id="copy-id-btn" class="copy-id-btn" title="Copy Invite ID">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="connect-row">
+            <input type="text" id="friend-id-input" class="connect-input" placeholder="Enter Friend's ID..." autocomplete="off">
+            <button id="connect-btn" class="connect-btn">Connect</button>
+          </div>
+
+          <div class="friends-list-wrapper">
+            <ul id="friends-list" class="friends-list">
+              <!-- Friends dynamically injected by app.js -->
+            </ul>
+          </div>
+        </section>
+
+        <!-- To-Do List Panel -->
+        <section class="todo-panel glass-panel" id="todo-panel">
+          <div class="panel-header">
+            <h2>Focus Checklist</h2>
+            <div class="todo-stats" id="todo-stats">0/0 completed</div>
+          </div>
+
+          <div class="todo-input-wrapper">
+            <input type="text" id="todo-input" class="todo-input" placeholder="Add a focus task..." autocomplete="off">
+            <button id="todo-add-btn" class="todo-add-btn" title="Add Task">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div class="todo-list-container">
+            <ul id="todo-list" class="todo-list">
+              <!-- Tasks dynamically injected by app.js -->
+            </ul>
+          </div>
+
+          <div class="todo-footer">
+            <button id="todo-clear-btn" class="todo-clear-btn">Clear Completed</button>
+          </div>
+        </section>
+        
+      </div>
+
+      <!-- Center Column: Open Visual space & Elegant Clock Widget -->
+      <section class="center-focus-area" id="center-focus">
+        <div class="focus-time" id="focus-time">00:00</div>
+        <div class="focus-date" id="focus-date">Wednesday, August 19</div>
+        <div class="focus-quote" id="focus-quote">cozy focus time</div>
+      </section>
+
+      <!-- Right Column: Player & Ambient Mixer Grid -->
+      <div class="right-content" id="right-content">
+        
+        <!-- Top Half: Lofi Audio Player -->
+        <section class="player-panel glass-panel" id="music-player-panel">
+          <div class="visualizer-wrapper">
+            <div class="player-disk-outer"></div>
+            <div class="player-disk-glow"></div>
+            <div class="disk-cover">
+              <div class="disk-cover-art" id="disk-art">
+                ♫
+              </div>
+            </div>
+          </div>
+
+          <div class="song-info">
+            <div class="song-title" id="song-title">Loading track...</div>
+            <div class="song-artist" id="song-artist">Standby</div>
+          </div>
+
+          <!-- Seekable Trackbar -->
+          <div class="track-time-bar">
+            <span class="time-label" id="current-time">0:00</span>
+            <div class="progress-container" id="progress-container">
+              <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <span class="time-label" id="duration-time">0:00</span>
+          </div>
+
+          <!-- Controls -->
+          <div class="player-controls">
+            <button class="control-btn btn-prev" id="btn-prev" title="Previous Track">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 6h2v12H6zm3.5 6L18 6v12z"/>
+              </svg>
+            </button>
+            <button class="control-btn btn-play" id="btn-play" title="Play / Pause">
+              <svg id="play-icon" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+            <button class="control-btn btn-next" id="btn-next" title="Next Track">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 18l8.5-6L6 6zm9-12h2v12h-2z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Master Volume -->
+          <div class="volume-control">
+            <div class="volume-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+            </div>
+            <input type="range" id="master-volume" class="slider-input" min="0" max="1" step="0.01" value="0.5" title="Master Volume">
+          </div>
+        </section>
+
+        <!-- Bottom Half: Ambient Mixer -->
+        <section class="mixer-panel glass-panel">
+          <div class="panel-header">
+            <h2>Ambient Mixer</h2>
+          </div>
+
+          <div class="mixer-grid">
+            
+            <!-- Rain Card -->
+            <div class="mixer-card" id="mixer-rain">
+              <button class="mixer-icon-btn" title="Toggle Rain">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+                  <line x1="8" y1="19" x2="8" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                  <line x1="16" y1="19" x2="16" y2="21"></line>
+                </svg>
+              </button>
+              <div class="mixer-card-content">
+                <div class="mixer-label-row">
+                  <span class="mixer-name">Soft Rain</span>
+                  <span class="mixer-vol-label" id="label-rain">0%</span>
+                </div>
+                <input type="range" class="mixer-slider" id="slider-rain" min="0" max="1" step="0.01" value="0">
+              </div>
+            </div>
+
+            <!-- Fire Card -->
+            <div class="mixer-card" id="mixer-fire">
+              <button class="mixer-icon-btn" title="Toggle Campfire">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                </svg>
+              </button>
+              <div class="mixer-card-content">
+                <div class="mixer-label-row">
+                  <span class="mixer-name">Campfire</span>
+                  <span class="mixer-vol-label" id="label-fire">0%</span>
+                </div>
+                <input type="range" class="mixer-slider" id="slider-fire" min="0" max="1" step="0.01" value="0">
+              </div>
+            </div>
+
+            <!-- Wind Card -->
+            <div class="mixer-card" id="mixer-wind">
+              <button class="mixer-icon-btn" title="Toggle Wind">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
+                </svg>
+              </button>
+              <div class="mixer-card-content">
+                <div class="mixer-label-row">
+                  <span class="mixer-name">Breeze</span>
+                  <span class="mixer-vol-label" id="label-wind">0%</span>
+                </div>
+                <input type="range" class="mixer-slider" id="slider-wind" min="0" max="1" step="0.01" value="0">
+              </div>
+            </div>
+
+            <!-- Ocean Card -->
+            <div class="mixer-card" id="mixer-ocean">
+              <button class="mixer-icon-btn" title="Toggle Waves">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 6c.6 0 1.2-.2 1.5-.5C4.2 4.7 5.7 4 7.5 4c1.8 0 3.3.7 4 1.5.3.3.9.5 1.5.5s1.2-.2 1.5-.5c.7-.8 2.2-1.5 4-1.5 1.8 0 3.3.7 4 1.5.3.3.9.5 1.5.5m-20 6c.6 0 1.2-.2 1.5-.5.7-.8 2.2-1.5 4-1.5 1.8 0 3.3.7 4 1.5.3.3.9.5 1.5.5s1.2-.2 1.5-.5c.7-.8 2.2-1.5 4-1.5 1.8 0 3.3.7 4 1.5.3.3.9.5 1.5.5m-20 6c.6 0 1.2-.2 1.5-.5.7-.8 2.2-1.5 4-1.5 1.8 0 3.3.7 4 1.5.3.3.9.5 1.5.5s1.2-.2 1.5-.5c.7-.8 2.2-1.5 4-1.5 1.8 0 3.3.7 4 1.5.3.3.9.5 1.5.5"></path>
+                </svg>
+              </button>
+              <div class="mixer-card-content">
+                <div class="mixer-label-row">
+                  <span class="mixer-name">Waves</span>
+                  <span class="mixer-vol-label" id="label-ocean">0%</span>
+                </div>
+                <input type="range" class="mixer-slider" id="slider-ocean" min="0" max="1" step="0.01" value="0">
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
